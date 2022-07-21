@@ -1,4 +1,6 @@
 # telcheck
+![telcheck](https://user-images.githubusercontent.com/86271004/180223336-d582a406-c5cb-478a-bf59-a746d603a461.png)
+
 telcheck is a simple Bash script that uses telnet to check for blocks with various email providers. It currently checks:
 
 * AOL*
