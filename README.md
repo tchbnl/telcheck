@@ -1,5 +1,5 @@
 # telcheck
-![telcheck](https://user-images.githubusercontent.com/86271004/180223336-d582a406-c5cb-478a-bf59-a746d603a461.png)
+![telcheck](https://user-images.githubusercontent.com/86271004/180286893-1cd273ea-c113-48ba-9fbd-fc777d318d14.png)
 
 telcheck is a simple Bash script that uses telnet to check for blocks with various email providers. It currently checks:
 
