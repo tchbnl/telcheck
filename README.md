@@ -23,6 +23,8 @@ telcheck is a simple Bash script that uses telnet to check for blocks with vario
 
 Gmail and Fastmail _should_ work, but I've never run them against a known-blocked server.
 
+The additional IP detection uses the cPanel API, so will only work on cPanel servers. You can still use the `-b` option manually to specify an IP to check with. As long as the IP is on the server, it should work. The script does a test telnet connection against 127.0.0.1 to make sure the IP can bind.
+
 ## minicheck
 minicheck is telcheck without the need to download and execute the script. It's just the Bash code reworked to wrap it in `telcheck()` between brackets and stripped of all comments and spacing to make it as compact as possible. Useful to use once on a server and never again.
 
