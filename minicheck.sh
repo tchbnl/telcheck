@@ -17,7 +17,7 @@ USAGE: telcheck [-b]
 
 Note: Do not abuse this script! Frequent checks can make things worse. Run
 once and collect the information. Get delisted. That's it."
-MSG_VERSION="telcheck 0.6 (Updated on 7/21/2022)"
+MSG_VERSION="telcheck 0.6 (Updated on 7/23/2022)"
 MSG_IPS="${TEXT_BLD}Found one or more dedicated IPs.${TEXT_RST} Use '-b [IP]' to re-run against them:"
 MSG_BLOCK="Block(s) detected. Follow the steps in the above output(s) to delist."
 MSG_CLEAR="All clear! No blocks detected."
@@ -57,7 +57,7 @@ echo "$MSG_VERSION"
 return
 ;;
 -*|--*)
-echo "Unknon option $1"
+echo "Unknown option $1"
 echo "$MSG_HELP"
 return
 ;;
