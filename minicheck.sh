@@ -17,24 +17,24 @@ USAGE: telcheck [-b]
 
 Note: Do not abuse this script! Frequent checks can make things worse. Run
 once and collect the information. Get delisted. That's it."
-MSG_VERSION="telcheck 0.6 (Updated on 7/23/2022)"
+MSG_VERSION="telcheck 0.7 (Updated on 7/25/2022)"
 MSG_IPS="${TEXT_BLD}Found one or more dedicated IPs.${TEXT_RST} Use '-b [IP]' to re-run against them:"
 MSG_BLOCK="Block(s) detected. Follow the steps in the above output(s) to delist."
 MSG_CLEAR="All clear! No blocks detected."
 MSG_BAD_SOURCE="Specified IP is invalid or not available. Aborting attempt."
 COMMANDS="sleep 1.5; echo \"ehlo $(hostname)\"; sleep 1.5; echo \"mail from: <root@$(hostname)>\"; sleep 1.5; echo \"quit\"; sleep 1.5;"
-HOST_AOL="mx-aol.mail.gm0.yahoodns.net"
-HOST_ATT="al-ip4-mx-vip1.prodigy.net"
-HOST_COMCAST="mx1a1.comcast.net"
-HOST_COX="cxr.mx.a.cloudfilter.net"
-HOST_EARTHLINK="mx01.oxsus-vadesecure.net"
-HOST_FASTMAIL="in1-smtp.messagingengine.com"
-HOST_GMAIL="gmail-smtp-in.l.google.com"
-HOST_HOTMAIL="hotmail-com.olc.protection.outlook.com"
-HOST_OPTIMUM="mx.mx-altice.prod.cloud.synchronoss.net"
-HOST_OUTLOOK="outlook-com.olc.protection.outlook.com"
-HOST_VERIZON="mx-aol.mail.gm0.yahoodns.net"
-HOST_YAHOO="mta5.am0.yahoodns.net"
+HOSTS=("Aol.com, mx-aol.mail.gm0.yahoodns.net"
+"Att.net, al-ip4-mx-vip1.prodigy.net"
+"Comcast.net, mx1a1.comcast.net"
+"Cox.net, cxr.mx.a.cloudfilter.net"
+"Earthlink.net, mx01.oxsus-vadesecure.net"
+"Fastmail.com, in1-smtp.messagingengine.com"
+"Gmail.com, gmail-smtp-in.l.google.com"
+"Hotmail.com, hotmail-com.olc.protection.outlook.com"
+"Optonline.com, mx.mx-altice.prod.cloud.synchronoss.net"
+"Outlook.com, outlook-com.olc.protection.outlook.com"
+"Verizon.net, mx-aol.mail.gm0.yahoodns.net"
+"Yahoo.com, mta5.am0.yahoodns.net")
 FILTER_LIST="block|blacklist|not allowed|banned|denied|rejected|ivmsip|invaluement|sorbs|spamcop|spamhaus"
 while [[ $# -gt 0 ]]; do
 case $1 in
@@ -88,138 +88,19 @@ if [[ $SOURCE_ADDR ]]; then
 echo -e "${TEXT_BLD}Checking $(echo "$SOURCE_ADDR" | awk '{print $2}')...${TEXT_RST}\n"; else
 echo -e "${TEXT_BLD}Checking $(hostname -i)...${TEXT_RST}\n"
 fi
-checkAol="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_AOL 25 2>&1)"
-RESPONSE="$(echo "$checkAol" | grep -iE "$FILTER_LIST")"
+for HOST in "${HOSTS[@]}"; do
+checkHost="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $(echo "$HOST" | awk '{print $2}') 25 2>&1)"
+RESPONSE="$(echo "$checkHost" | grep -iE "$FILTER_LIST")"
 if [[ $RESPONSE != "" ]]; then
 IS_BLOCKED="true"
 RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
 RESULT="${TEXT_GRN}OK${TEXT_RST}"
 fi
-echo -e "${TEXT_BLD}* Aol.com [$RESULT${TEXT_BLD}]${TEXT_RST}"
+echo -e "${TEXT_BLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BLD}]${TEXT_RST}"
 if [[ $RESPONSE != "" ]]; then
 echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
 fi
-checkAtt="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_ATT 25 2>&1)"
-RESPONSE="$(echo "$checkAtt" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}OK${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Att.net [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkComcast="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_COMCAST 25 2>&1)"
-RESPONSE="$(echo "$checkComcast" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}Comcastic\u21${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Comcast.net [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkCox="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_COX 25 2>&1)"
-RESPONSE="$(echo "$checkCox" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}OK${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Cox.net [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkEarthlink="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_EARTHLINK 25 2>&1)"
-RESPONSE="$(echo "$checkEarthlink" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}OK${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Earthlink.net [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkFastmail="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_FASTMAIL 25 2>&1)"
-RESPONSE="$(echo "$checkFastmail" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}OK${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Fastmail.com [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkGmail="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_GMAIL 25 2>&1)"
-RESPONSE="$(echo "$checkGmail" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}OK${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Gmail.com [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkHotmail="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_HOTMAIL 25 2>&1)"
-RESPONSE="$(echo "$checkHotmail" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}OK${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Hotmail.com [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkOptimum="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_OPTIMUM 25 2>&1)"
-RESPONSE="$(echo "$checkOptimum" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}OK${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Optonline.com [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkOutlook="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_OUTLOOK 25 2>&1)"
-RESPONSE="$(echo "$checkOutlook" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}OK${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Outlook.com [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkVerizon="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_VERIZON 25 2>&1)"
-RESPONSE="$(echo "$checkVerizon" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}OK${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Verizon.net [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
-checkYahoo="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $HOST_YAHOO 25 2>&1)"
-RESPONSE="$(echo "$checkYahoo" | grep -iE "$FILTER_LIST")"
-if [[ $RESPONSE != "" ]]; then
-IS_BLOCKED="true"
-RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-RESULT="${TEXT_GRN}Yahoo\u21${TEXT_RST}"
-fi
-echo -e "${TEXT_BLD}* Yahoo.com [$RESULT${TEXT_BLD}]${TEXT_RST}"
-if [[ $RESPONSE != "" ]]; then
-echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-fi
+done
 if [[ $IS_BLOCKED = "true" ]]; then
 echo -e "\n$MSG_BLOCK"; else
 echo -e "\n$MSG_CLEAR"
