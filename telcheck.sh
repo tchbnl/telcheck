@@ -143,9 +143,13 @@ for HOST in "${HOSTS[@]}"; do
         echo -e "${TEXT_BLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BLD}]${TEXT_RST}"
 
         if [[ $HOTMAIL_RESPONSE != "" ]]; then
-            echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
+            echo -e "\u2937 $(echo "$HOTMAIL_RESPONSE" | grep -iE "$FILTER_LIST")"
         fi
-        continue; elif [[ $HOST = "Verizon"* || $HOST = "Yahoo"* ]]; then
+
+        continue
+    fi
+
+    if [[ $HOST = "Verizon"* || $HOST = "Yahoo"* ]]; then
         if [[ $AOL_RESPONSE != "" ]]; then
             IS_BLOCKED="true"
             RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
@@ -155,8 +159,9 @@ for HOST in "${HOSTS[@]}"; do
         echo -e "${TEXT_BLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BLD}]${TEXT_RST}"
 
         if [[ $AOL_RESPONSE != "" ]]; then
-            echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
+            echo -e "\u2937 $(echo "$AOL_RESPONSE" | grep -iE "$FILTER_LIST")"
         fi
+
         continue
     fi
 
@@ -165,7 +170,10 @@ for HOST in "${HOSTS[@]}"; do
     RESPONSE="$(echo "$checkHost" | grep -iE "$FILTER_LIST")"
 
     if [[ $HOST = "Aol"* ]]; then
-        AOL_RESPONSE="$RESPONSE"; elif [[ $HOST = "Hotmail"* ]]; then
+        AOL_RESPONSE="$RESPONSE";
+    fi
+
+    if [[ $HOST = "Hotmail"* ]]; then
         HOTMAIL_RESPONSE="$RESPONSE"
     fi
 
