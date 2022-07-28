@@ -1,7 +1,6 @@
 # telcheck
 ![telcheck](https://user-images.githubusercontent.com/86271004/181644616-336a469d-64a2-4c88-b966-46edd271f3c0.png)
-
-telcheck is a simple Bash script that uses telnet to check for blocks with various email providers. It currently checks:
+telcheck is a simple Bash script that uses telnet to check for blocks at various email providers. It currently checks:
 
 | Provider  | Confirmed Works |
 | :-------- | :-------------- |
