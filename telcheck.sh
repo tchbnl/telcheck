@@ -132,7 +132,7 @@ fi
 
 # Run host checks
 for HOST in "${HOSTS[@]}"; do
-    # Skip unnecessary lookups for Outlook/Verizon/Yahoo
+    # Skip unnecessary lookup for Outlook
     if [[ $HOST = "Outlook"* ]]; then
         if [[ $HOTMAIL_RESPONSE != "" ]]; then
             IS_BLOCKED="true"
@@ -149,6 +149,7 @@ for HOST in "${HOSTS[@]}"; do
         continue
     fi
 
+    # Same for Verizon and Yahoo
     if [[ $HOST = "Verizon"* || $HOST = "Yahoo"* ]]; then
         if [[ $AOL_RESPONSE != "" ]]; then
             IS_BLOCKED="true"
@@ -165,10 +166,13 @@ for HOST in "${HOSTS[@]}"; do
         continue
     fi
 
+    # The telcheck™
     checkHost="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $(echo "$HOST" | awk '{print $2}') 25 2>&1)"
 
+    # Filter response
     RESPONSE="$(echo "$checkHost" | grep -iE "$FILTER_LIST")"
 
+    # Setup for Outlook/Verizon/Yahoo lookup skips
     if [[ $HOST = "Aol"* ]]; then
         AOL_RESPONSE="$RESPONSE";
     fi
@@ -177,6 +181,7 @@ for HOST in "${HOSTS[@]}"; do
         HOTMAIL_RESPONSE="$RESPONSE"
     fi
 
+    # Result codes
     if [[ $RESPONSE != "" ]]; then
         IS_BLOCKED="true"
         RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
@@ -186,6 +191,7 @@ for HOST in "${HOSTS[@]}"; do
     # TODO: Bring back "Comcastic" and "Yahoo!" result codes
     echo -e "${TEXT_BLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BLD}]${TEXT_RST}"
 
+    # Block message (if any)
     if [[ $RESPONSE != "" ]]; then
         echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
     fi
