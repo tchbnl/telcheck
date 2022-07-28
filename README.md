@@ -23,7 +23,7 @@ The additional IP detection uses the cPanel API, so it'll only work on cPanel se
 
 As of v0.8, the Outlook, Verizon, and Yahoo checks are skipped and use the results from AOL or Hotmail to avoid unnecessary lookups against providers that use the same infrastructure.
 
-The current version is **v0.8**. It was last updated on **07/28/2022**. You can always check your current version with `-v` or `--version`.
+The current version is **v0.8**. It was last updated on **07/28/2022**. You can always check your downloaded version with `-v` or `--version`.
 
 ## minicheck
 minicheck is a compressed version of telcheck that can be run directly from the shell. Just copy and paste the code into the active shell session and run `telcheck` like normal. It's the exact same code without the extra spaces and comments. As always, make sure you read and understand the code you run from strangers on the Internet.
