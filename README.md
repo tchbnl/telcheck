@@ -25,7 +25,4 @@ As of v0.8, the Outlook, Verizon, and Yahoo checks are skipped and use the resul
 
 The current version is **v0.8**. It was last updated on **07/28/2022**. You can check the downloaded version with `-v` or `--version`.
 
-## minicheck
-minicheck is a compressed version of telcheck that can be run directly from the shell. Just copy and paste the code into the active shell session and run `telcheck` like normal. It's the exact same code without the extra spaces and comments. As always, make sure you read and understand the code you run from strangers on the Internet.
-
 I offer no warranty for this software and what it might do etc. You are responsible for the reputation of your mail server and what runs on it.
