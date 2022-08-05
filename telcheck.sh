@@ -163,7 +163,6 @@ for HOST in "${HOSTS[@]}"; do
 
   # Verizon and Yahoo use AOL's mail service
   if [[ "${HOST}" == "Verizon"* || "${HOST}" == "Yahoo"* ]]; then
-
     if [[ -n "${AOL_RESPONSE}" ]]; then
       IS_BLOCKED="true"
       RESULT="${TEXT_RED}FAIL${TEXT_RESET}"; else
