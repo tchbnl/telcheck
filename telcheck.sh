@@ -1,7 +1,10 @@
 #!/bin/bash
-# telcheck: Check for email blocks with telnet
+#
+# Check for email blocks with telnet
+#
 # Nathan Paton <nathanpat@inmotionhosting.com>
-# v0.8 Updated on 7/28/2022
+#
+# v0.9 Updated on 8/5/2022
 #
 # Releases
 # * v0.1: Initial release
@@ -17,20 +20,19 @@
 #         Lowered send delay on telnet a little
 # * v0.7: Reworked check code to be more compact
 # * v0.8: Reworked check code to avoid useless lookups
+# * v0.9: Reworked code to some semblance of standards
 # * v1.0: Space battle simulator fully implemented
 
-# Just in case this wasn't unset last time
-if [[ $SOURCE_ADDR || $IS_BLOCKED ]]; then
-    unset SOURCE_ADDR; unset IS_BLOCKED
-fi
+# Version number and revision date
+VERSION="telcheck 0.9 (Updated on 8/5/2022)"
 
-# Support for fancy text
-TEXT_BLD="\e[1m"  # Bold text
-TEXT_GRN="\e[32m" # Green text
-TEXT_RED="\e[31m" # Red text
-TEXT_RST="\e[0m"  # Reset text
+# Fancy text
+TEXT_BOLD="\e[1m"
+TEXT_GREEN="\e[32m"
+TEXT_RED="\e[31m"
+TEXT_RESET="\e[0m"
 
-# Messages
+# Help message
 MSG_HELP="telcheck is a simple email block checker using telnet.
 
 USAGE: telcheck [-b]
@@ -41,15 +43,6 @@ USAGE: telcheck [-b]
 
 Note: Do not abuse this script! Frequent checks can make things worse. Run
 once and collect the information. Get delisted. That's it."
-
-MSG_VERSION="telcheck 0.8 (Updated on 7/28/2022)"
-MSG_IPS="${TEXT_BLD}Found one or more dedicated IPs.${TEXT_RST} Use '-b [IP]' to re-run against them:"
-MSG_BLOCK="Block(s) detected. Follow the steps in the above output(s) to delist."
-MSG_CLEAR="All clear! No blocks detected."
-MSG_BAD_SOURCE="Specified IP is invalid or not available. Aborting attempt."
-
-# Telnet commands
-COMMANDS="sleep 1.5; echo \"ehlo $(hostname)\"; sleep 1.5; echo \"mail from: <root@$(hostname)>\"; sleep 1.5; echo \"quit\"; sleep 1.5;"
 
 # Email hosts
 HOSTS=("Aol.com, mx-aol.mail.gm0.yahoodns.net"
@@ -65,145 +58,170 @@ HOSTS=("Aol.com, mx-aol.mail.gm0.yahoodns.net"
        "Verizon.net, mx-aol.mail.gm0.yahoodns.net"
        "Yahoo.com, mta5.am0.yahoodns.net")
 
-# Block check filter
-FILTER_LIST="block|blacklist|not allowed|banned|denied|rejected|ivmsip|invaluement|sorbs|spamcop|spamhaus"
+# Get our options
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    -b|--source)
+      SOURCE_ADDR="$2"
 
-# Command options
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -b|--source)
-            SOURCE_ADDR="-b $2"
-            shift
-            shift
-        ;;
-        -h|--help)
-            echo "$MSG_HELP"
-            exit
-        ;;
-        -s|--battle)
-            SOURCE_ADDR="-b $2"
-            shift
-            shift
-        ;;
-        -v|--version)
-            echo "$MSG_VERSION"
-            exit
-        ;;
-        -*|--*)
-            echo "Unknown option $1"
-            echo "$MSG_HELP"
-            exit
-        ;;
-        *)
-            echo "Unknown option $1"
-            echo "$MSG_HELP"
-            exit
-        ;;
-    esac
+      shift
+      shift
+    ;;
+    -h|--help)
+      echo "${MSG_HELP}"
+
+      exit
+    ;;
+    -s|--battle)
+      SOURCE_ADDR="$2"
+
+      shift
+      shift
+    ;;
+    -v|--version)
+      echo "${VERSION}"
+
+      exit
+    ;;
+    -*|--*)
+      echo "Unknown option $1"
+      echo "${MSG_HELP}"
+
+      exit
+    ;;
+    *)
+      echo "Unknown option $1"
+      echo "${MSG_HELP}"
+
+      exit
+    ;;
+  esac
 done
 
-# Test if SOURCE_ADDR is valid or not
-if [[ $SOURCE_ADDR ]]; then
-    testSource="$({ echo "quit"; sleep 1.5; } | telnet $SOURCE_ADDR 127.0.0.1 25 2>&1)"
+# This runs telnet with "-b SOURCE_ADDR" and pipes the output to grep. If it
+# returns a match, the condition is met and our error message is returned. We
+# use "-q" to suppress the actual output so the check is nice and quiet.
+if [[ -v SOURCE_ADDR ]]; then
+  if { echo "quit"; sleep 1.5; } \
+    | telnet -b "${SOURCE_ADDR}" 127.0.0.1 25 2>&1 \
+    | grep -Eiq "couldn't bind to|cannot assign|couldn't get|could not resolve|invalid argument"; then
 
-    RESPONSE="$(echo "$testSource" | grep -iE "couldn't bind to|cannot assign|couldn't get|could not resolve|invalid argument")"
+    echo "Specified IP is invalid or not available. Aborting attempt."; unset SOURCE_ADDR
 
-    if [[ $RESPONSE != "" ]]; then
-        echo "$MSG_BAD_SOURCE"; unset SOURCE_ADDR
-        exit
-    fi
+    exit
+  fi
 fi
 
-# Check for additional IPs with cPanel API
+# First we check to make sure the whmapi1 command exists; this check only works
+# on cPanel servers. Then, we run listips and remove our hostname IP from the
+# output. If other IPs are still returned, we can list them for the user. If no
+# other IPs are returned, we exit silently and forget all this happened.
 if [[ -x /usr/local/cpanel/bin/whmapi1 ]]; then
-    IP_LIST="$(whmapi1 listips | grep -i "_ip:" | awk '{print $2}')"
-
-    if [[ $IP_LIST != "$(hostname -i)" ]]; then
-        echo -e "$MSG_IPS"
-        echo -e "$(whmapi1 listips | grep -i "_ip:" | sed "/$(hostname -i)/d" | awk '{print "* "$2}')\n"
-    fi
+  if whmapi1 listips | sed "/$(hostname -i)/d" | grep -iq "public_ip:"; then
+    echo -e "${TEXT_BOLD}Found one or more dedicated IPs.${TEXT_RESET} Use '-b [IP]' to re-run against them:"
+    echo -e "$(whmapi1 listips | sed "/$(hostname -i)/d" | grep -i "public_ip:" \
+      | awk '{print "* "$2}')\n"
+  fi
 fi
 
-# IP being checked
-if [[ $SOURCE_ADDR ]]; then
-    echo -e "${TEXT_BLD}Checking $(echo "$SOURCE_ADDR" | awk '{print $2}')...${TEXT_RST}\n"; else
-    echo -e "${TEXT_BLD}Checking $(hostname -i)...${TEXT_RST}\n"
+# Show the IP being checked
+if [[ -v SOURCE_ADDR ]]; then
+  echo -e "${TEXT_BOLD}Checking ${SOURCE_ADDR}...${TEXT_RESET}\n"; else
+  echo -e "${TEXT_BOLD}Checking $(hostname -i)...${TEXT_RESET}\n"
 fi
 
-# Run host checks
+# We use a loop to run each server from HOSTS through telnet and filter the
+# output for words that suggest there's a block. If the filter returns a
+# match, the RESULT is fail and we set IS_BLOCKED for the final results message
+# at the end of this script.
 for HOST in "${HOSTS[@]}"; do
-    # Skip unnecessary lookup for Outlook
-    if [[ $HOST = "Outlook"* ]]; then
-        if [[ $HOTMAIL_RESPONSE != "" ]]; then
-            IS_BLOCKED="true"
-            RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-            RESULT="${TEXT_GRN}OK${TEXT_RST}"
-        fi
 
-        echo -e "${TEXT_BLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BLD}]${TEXT_RST}"
+  # Hotmail and Outlook are the same, so we avoid a useless lookup and wasted
+  # seconds by forwarding the result for Hotmail to Outlook. The actual check
+  # is further down; this is to catch it before it runs.
+  if [[ "${HOST}" == "Outlook"* ]]; then
 
-        if [[ $HOTMAIL_RESPONSE != "" ]]; then
-            echo -e "\u2937 $(echo "$HOTMAIL_RESPONSE" | grep -iE "$FILTER_LIST")"
-        fi
-
-        continue
+    # If RESPONSE contains a match from the above filter, set IS_BLOCKED and
+    # fail the RESULT - otherwise the RESULT is OK.
+    if [[ -n "${HOTMAIL_RESPONSE}" ]]; then
+      IS_BLOCKED="true"
+      RESULT="${TEXT_RED}FAIL${TEXT_RESET}"; else
+      RESULT="${TEXT_GREEN}OK${TEXT_RESET}"
     fi
 
-    # Same for Verizon and Yahoo
-    if [[ $HOST = "Verizon"* || $HOST = "Yahoo"* ]]; then
-        if [[ $AOL_RESPONSE != "" ]]; then
-            IS_BLOCKED="true"
-            RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-            RESULT="${TEXT_GRN}OK${TEXT_RST}"
-        fi
+    # Return the host and its check result
+    echo -e "${TEXT_BOLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BOLD}]${TEXT_RESET}"
 
-        echo -e "${TEXT_BLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BLD}]${TEXT_RST}"
-
-        if [[ $AOL_RESPONSE != "" ]]; then
-            echo -e "\u2937 $(echo "$AOL_RESPONSE" | grep -iE "$FILTER_LIST")"
-        fi
-
-        continue
+    # Also return the RESPONSE if there was a match
+    if [[ -n "${HOTMAIL_RESPONSE}" ]]; then
+      echo "🚫 ${HOTMAIL_RESPONSE}"
     fi
 
-    # The telcheck™
-    checkHost="$(eval { $COMMANDS } | telnet $SOURCE_ADDR $(echo "$HOST" | awk '{print $2}') 25 2>&1)"
+    # Run the next item in the loop
+    continue
+  fi
 
-    # Filter response
-    RESPONSE="$(echo "$checkHost" | grep -iE "$FILTER_LIST")"
+  # Verizon and Yahoo use AOL's mail service
+  if [[ "${HOST}" == "Verizon"* || "${HOST}" == "Yahoo"* ]]; then
 
-    # Setup for Outlook/Verizon/Yahoo lookup skips
-    if [[ $HOST = "Aol"* ]]; then
-        AOL_RESPONSE="$RESPONSE";
+    if [[ -n "${AOL_RESPONSE}" ]]; then
+      IS_BLOCKED="true"
+      RESULT="${TEXT_RED}FAIL${TEXT_RESET}"; else
+      RESULT="${TEXT_GREEN}OK${TEXT_RESET}"
     fi
 
-    if [[ $HOST = "Hotmail"* ]]; then
-        HOTMAIL_RESPONSE="$RESPONSE"
+    echo -e "${TEXT_BOLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BOLD}]${TEXT_RESET}"
+
+    if [[ -n "${AOL_RESPONSE}" ]]; then
+      echo "🚫 ${AOL_RESPONSE}"
     fi
 
-    # Result codes
-    if [[ $RESPONSE != "" ]]; then
-        IS_BLOCKED="true"
-        RESULT="${TEXT_RED}FAIL${TEXT_RST}"; else
-        RESULT="${TEXT_GRN}OK${TEXT_RST}"
-    fi
+    continue
+  fi
 
-    # TODO: Bring back "Comcastic" and "Yahoo!" result codes
-    echo -e "${TEXT_BLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BLD}]${TEXT_RST}"
+  # Run the telcheck; this is similar to our SOURCE_ADDR check further up. We
+  # variablize the result and then filter it below.
+  check_host() {
+    { sleep 1.5; echo "ehlo $(hostname)"; sleep 1.5; echo "mail from: <root@$(hostname)>"; sleep 1.5; echo "quit"; sleep 1.5; } \
+    | telnet ${SOURCE_ADDR:+"-b" "${SOURCE_ADDR}"} "$(echo "${HOST}" | awk '{print $2}')" 25 2>&1
+  }
 
-    # Block message (if any)
-    if [[ $RESPONSE != "" ]]; then
-        echo -e "\u2937 $(echo "$RESPONSE" | grep -iE "$FILTER_LIST")"
-    fi
+  # Variablize and run check, then filter its output
+  RESPONSE="$(check_host \
+    | grep -Ei "block|blacklist|not allowed|banned|denied|rejected|ivmsip|invaluement|sorbs|spamcop|spamhaus")"
+
+  if [[ -n "${RESPONSE}" ]]; then
+    IS_BLOCKED='true'
+    RESULT="${TEXT_RED}FAIL${TEXT_RESET}"; else
+    RESULT="${TEXT_GREEN}OK${TEXT_RESET}"
+  fi
+
+  echo -e "${TEXT_BOLD}* $(echo "${HOST}" | awk -F "," '{print $1}') [${RESULT}${TEXT_BOLD}]${TEXT_RESET}"
+
+  if [[ -n "${RESPONSE}" ]]; then
+    echo "🚫 ${RESPONSE})"
+  fi
+
+  # Set AOL variable for duplicate host check
+  if [[ "${HOST}" == "Aol"* ]]; then
+    AOL_RESPONSE="${RESPONSE}"
+  fi
+
+  # Set Hotmail variable for duplicate host check
+  if [[ "${HOST}" == "Hotmail"* ]]; then
+    HOTMAIL_RESPONSE="${RESPONSE}"
+  fi
 done
 
-# Closing message
-if [[ $IS_BLOCKED = "true" ]]; then
-    echo -e "\n$MSG_BLOCK"; else
-    echo -e "\n$MSG_CLEAR"
+# Final check results and cleanup
+if [[ -v IS_BLOCKED ]]; then
+  echo -e "\nBlock(s) detected. Follow the steps in the above output(s) to delist."
+
+  unset IS_BLOCKED; else
+  echo -e "\nAll clear! No blocks detected."
 fi
 
-# Final cleanup attempt
-if [[ $SOURCE_ADDR || $IS_BLOCKED ]]; then
-    unset SOURCE_ADDR; unset IS_BLOCKED
+# Unset SOURCE_ADDR for future runs (for direct shell version)
+if [[ -v SOURCE_ADDR ]]; then
+  unset SOURCE_ADDR
 fi
