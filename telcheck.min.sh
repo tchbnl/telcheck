@@ -126,7 +126,6 @@ fi
 done
 if [[ -v IS_BLOCKED ]]; then
 echo -e "\nBlock(s) detected. Follow the steps in the above output(s) to delist."
-
 unset IS_BLOCKED; else
 echo -e "\nAll clear! No blocks detected."
 fi
