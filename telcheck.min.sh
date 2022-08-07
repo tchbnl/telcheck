@@ -1,6 +1,6 @@
 telcheck()
 {
-VERSION="telcheck 0.9 (Updated on 8/5/2022)"
+VERSION="telcheck 0.9 (Updated on 8/6/2022)"
 TEXT_BOLD="\e[1m"
 TEXT_GREEN="\e[32m"
 TEXT_RED="\e[31m"
@@ -26,7 +26,8 @@ HOSTS=("Aol.com, mx-aol.mail.gm0.yahoodns.net"
 "Optonline.com, mx.mx-altice.prod.cloud.synchronoss.net"
 "Outlook.com, outlook-com.olc.protection.outlook.com"
 "Verizon.net, mx-aol.mail.gm0.yahoodns.net"
-"Yahoo.com, mta5.am0.yahoodns.net")while [[ "$#" -gt 0 ]]; do
+"Yahoo.com, mta5.am0.yahoodns.net")
+while [[ "$#" -gt 0 ]]; do
 case "$1" in
 -b|--source)
 SOURCE_ADDR="$2"
@@ -62,7 +63,8 @@ if [[ -v SOURCE_ADDR ]]; then
 if { echo "quit"; sleep 1.5; } \
 | telnet -b "${SOURCE_ADDR}" 127.0.0.1 25 2>&1 \
 | grep -Eiq "couldn't bind to|cannot assign|couldn't get|could not resolve|invalid argument"; then
-echo "Specified IP is invalid or not available. Aborting attempt."; unset SOURCE_ADDR
+echo "Specified IP is invalid or not available. Aborting attempt.";
+unset SOURCE_ADDR
 return
 fi
 fi
