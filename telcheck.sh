@@ -4,27 +4,10 @@
 #
 # Nathan Paton <nathanpat@inmotionhosting.com>
 #
-# v0.9 Updated on 8/6/2022
-#
-# Releases
-# * v0.1: Initial release
-# * v0.2: Support for additional IPs added;
-#         Fancy text support added
-# * v0.3: Fixes to edge case detections
-# * v0.4: Apologies to EarthLink Corporation;
-#         Fixed spelling for "EARTLINK_HOST"
-# * v0.5: Raised send delay on telnet to fix edge cases
-# * v0.6: Fastmail added to hosts list;
-#         Reworked IP check to use cPanel API;
-#         Fancy text overhaul;
-#         Lowered send delay on telnet a little
-# * v0.7: Reworked check code to be more compact
-# * v0.8: Reworked check code to avoid useless lookups
-# * v0.9: Reworked code to some semblance of standards
-# * v1.0: Space battle simulator fully implemented
+# v0.9 Updated on 8/13/2022
 
 # Version number is latest change date
-VERSION="telcheck 0.9 (Updated on 8/6/2022)"
+VERSION="telcheck 0.9 (Updated on 8/13/2022)"
 
 # Text formatting options
 TEXT_BOLD="\e[1m"
@@ -79,7 +62,7 @@ while [[ "$#" -gt 0 ]]; do
       echo "${VERSION}"
       exit
     ;;
-    -*|--*)
+    -*)
       echo "Unknown option $1"
       echo "${MSG_HELP}"
       exit

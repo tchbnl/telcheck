@@ -9,8 +9,8 @@ telcheck is a simple Bash script that uses telnet to check for blocks at various
 | Comcast   | Yes             |
 | Cox       | Yes             |
 | EarthLink | Yes             |
-| Fastmail  | No              |
-| Gmail     | No              |
+| Fastmail  | Y-no            |
+| Gmail     | Y-No            |
 | Hotmail   | Yes             |
 | Optimum   | Yes             |
 | Outlook   | Yes             |
@@ -23,6 +23,6 @@ The additional IP detection uses the cPanel API, so it'll only work on cPanel se
 
 As of v0.8, the Outlook, Verizon, and Yahoo checks are skipped and use the results from AOL or Hotmail to avoid unnecessary lookups against providers that use the same infrastructure.
 
-The current version is **v0.8**. It was last updated on **07/28/2022**. You can check the downloaded version with `-v` or `--version`.
+The current version is **v0.9**. It was last updated on **08/13/2022**. You can check the downloaded version with `-v` or `--version`.
 
 I offer no warranty for this software and what it might do etc. You are responsible for the reputation of your mail server and what runs on it.

@@ -1,6 +1,6 @@
 telcheck()
 {
-VERSION="telcheck 0.9 (Updated on 8/6/2022)"
+VERSION="telcheck 0.9 (Updated on 8/13/2022)"
 TEXT_BOLD="\e[1m"
 TEXT_GREEN="\e[32m"
 TEXT_RED="\e[31m"

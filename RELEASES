@@ -1,0 +1,37 @@
+RELEASES
+
+v0.1:
+* Initial release
+
+v0.2:
+* Additional IP support added
+* Added fancy text support
+
+v0.3:
+* Detection fixes for some edge cases on Debian/Ubuntu
+
+v0.4:
+* Apologies to EarthLink Corporation
+* Fixed spelling for "EARTLINK_HOST"
+
+v0.5:
+* Send delay on telnet raised to fix some edge cases
+
+v0.6:
+* Fastmail added to hosts list
+* IP check reworked to use cPanel API
+* Fancy text has been overhauled
+* Send delay on telnet lowered a little
+
+v0.7:
+* Code reworked for compactness
+
+v0.8:
+* Check code reworked to avoid excess lookups
+
+v0.9:
+* Code reworked to some semblance of standards
+* Additional semblances
+
+v1.0:
+* Space battle simulator fully implemented
