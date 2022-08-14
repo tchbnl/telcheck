@@ -9,15 +9,15 @@ telcheck is a simple Bash script that uses telnet to check for blocks at various
 | Comcast   | Yes             |
 | Cox       | Yes             |
 | EarthLink | Yes             |
-| Fastmail  | Y-no            |
-| Gmail     | Y-No            |
+| Fastmail  | No*             |
+| Gmail     | No*             |
 | Hotmail   | Yes             |
 | Optimum   | Yes             |
 | Outlook   | Yes             |
 | Verizon   | Yes             |
 | Yahoo     | Yes             |
 
-Gmail and Fastmail _should_ work, but I've never run them against a known-blocked server.
+\* Gmail and Fastmail _should_ work, but I've never run them against a known-blocked server.
 
 The additional IP detection uses the cPanel API, so it'll only work on cPanel servers. You can still use the `-b` option manually to specify an IP to check with. As long as the IP is on the server, it should work. The script does a test connection against 127.0.0.1 to make sure the IP can bind.
 
