@@ -47,11 +47,6 @@ shift
 echo "${VERSION}"
 return
 ;;
--*|--*)
-echo "Unknown option $1"
-echo "${MSG_HELP}"
-return
-;;
 *)
 echo "Unknown option $1"
 echo "${MSG_HELP}"
