@@ -62,11 +62,6 @@ while [[ "$#" -gt 0 ]]; do
       echo "${VERSION}"
       exit
     ;;
-    -*)
-      echo "Unknown option $1"
-      echo "${MSG_HELP}"
-      exit
-    ;;
     *)
       echo "Unknown option $1"
       echo "${MSG_HELP}"
