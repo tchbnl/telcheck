@@ -36,7 +36,7 @@ shift
 ;;
 -h|--help)
 echo "${MSG_HELP}"
-exit
+return
 ;;
 -s|--battle)
 SOURCE_ADDR="$2"
@@ -45,12 +45,12 @@ shift
 ;;
 -v|--version)
 echo "${VERSION}"
-exit
+return
 ;;
 *)
 echo "Unknown option $1"
 echo "${MSG_HELP}"
-exit
+return
 ;;
 esac
 done
@@ -60,7 +60,7 @@ if { echo "quit"; sleep 1.5; } \
 | grep -Eiq "couldn't bind to|cannot assign|couldn't get|could not resolve|invalid argument"; then
 echo "Specified IP is invalid or not available. Aborting attempt.";
 unset SOURCE_ADDR
-exit
+return
 fi
 fi
 if [[ -x /usr/local/cpanel/bin/whmapi1 ]]; then
