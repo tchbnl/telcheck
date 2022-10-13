@@ -1,13 +1,10 @@
 #!/bin/bash
-#
-# Check for email blocks with telnet
-#
+# telcheck: Check for email blocks with telnet
 # Nathan Paton <nathanpat@inmotionhosting.com>
-#
-# v0.9 Updated on 8/13/2022
+# v0.9 (Updated on 10/12/2022)
 
 # Version number is latest change date
-VERSION="telcheck 0.9 (Updated on 8/13/2022)"
+VERSION="telcheck 0.9 (Updated on 10/12/2022)"
 
 # Text formatting options
 TEXT_BOLD="\e[1m"
@@ -149,7 +146,7 @@ for HOST in "${HOSTS[@]}"; do
 
   # Run check_host() and grep its output into a variable for further use
   RESPONSE="$(check_host \
-    | grep -Ei "block|blacklist|not allowed|banned|denied|rejected|ivmsip|invaluement|sorbs|spamcop|spamhaus")"
+    | grep -Ei "block|blacklist|not allowed|banned|denied|rejected|ivmsip|invaluement|sorbs|spamcop|spamhaus|dnsbl|dnsrbl|rbl|found on one or more")"
 
   # If RESPONSE had a match, we're blocked
   if [[ -n "${RESPONSE}" ]]; then
