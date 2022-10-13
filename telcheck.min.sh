@@ -1,6 +1,6 @@
 telcheck()
 {
-VERSION="telcheck 0.9 (Updated on 8/13/2022)"
+VERSION="telcheck 0.9 (Updated on 10/12/2022)"
 TEXT_BOLD="\e[1m"
 TEXT_GREEN="\e[32m"
 TEXT_RED="\e[31m"
@@ -8,10 +8,10 @@ TEXT_RESET="\e[0m"
 MSG_HELP="telcheck is a simple email block checker using telnet.
 
 USAGE: telcheck [-b]
--b --source [IP]    Specify the IP to run the check against.
--h --help           Show this message and exit.
--s --battle         Experimental space battle simulator.
--v --version        Show version information and exit.
+    -b --source [IP]    Specify the IP to run the check against.
+    -h --help           Show this message and exit.
+    -s --battle         Experimental space battle simulator.
+    -v --version        Show version information and exit.
 
 Note: Do not abuse this script! Frequent checks can make things worse. Run
 once and collect the information. Get delisted. That's it."
@@ -36,7 +36,7 @@ shift
 ;;
 -h|--help)
 echo "${MSG_HELP}"
-return
+exit
 ;;
 -s|--battle)
 SOURCE_ADDR="$2"
@@ -45,12 +45,12 @@ shift
 ;;
 -v|--version)
 echo "${VERSION}"
-return
+exit
 ;;
 *)
 echo "Unknown option $1"
 echo "${MSG_HELP}"
-return
+exit
 ;;
 esac
 done
@@ -60,7 +60,7 @@ if { echo "quit"; sleep 1.5; } \
 | grep -Eiq "couldn't bind to|cannot assign|couldn't get|could not resolve|invalid argument"; then
 echo "Specified IP is invalid or not available. Aborting attempt.";
 unset SOURCE_ADDR
-return
+exit
 fi
 fi
 if [[ -x /usr/local/cpanel/bin/whmapi1 ]]; then
@@ -104,7 +104,7 @@ check_host() {
 | telnet ${SOURCE_ADDR:+"-b" "${SOURCE_ADDR}"} "$(echo "${HOST}" | awk '{print $2}')" 25 2>&1
 }
 RESPONSE="$(check_host \
-| grep -Ei "block|blacklist|not allowed|banned|denied|rejected|ivmsip|invaluement|sorbs|spamcop|spamhaus")"
+| grep -Ei "block|blacklist|not allowed|banned|denied|rejected|ivmsip|invaluement|sorbs|spamcop|spamhaus|dnsbl|dnsrbl|rbl|found on one or more")"
 if [[ -n "${RESPONSE}" ]]; then
 IS_BLOCKED='true'
 RESULT="${TEXT_RED}FAIL${TEXT_RESET}"; else
