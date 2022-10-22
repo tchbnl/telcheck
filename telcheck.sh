@@ -1,7 +1,7 @@
 #!/bin/bash
 # telcheck: Check for email blocks with telnet
 # Nathan Paton <nathanpat@inmotionhosting.com>
-# v0.9 (Updated on 10/12/2022)
+# v0.9 (Updated on 10/21/2022)
 
 # Check the Bash version. telcheck requires at least 4.2 to work.
 if [[ "${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}" -lt "42" ]]; then
@@ -10,7 +10,7 @@ if [[ "${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}" -lt "42" ]]; then
 fi
 
 # Version number is latest change date
-VERSION="telcheck 0.9 (Updated on 10/12/2022)"
+VERSION="telcheck 0.9 (Updated on 10/21/2022)"
 
 # Text formatting options
 TEXT_BOLD="\e[1m"
