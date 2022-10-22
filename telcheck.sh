@@ -3,6 +3,12 @@
 # Nathan Paton <nathanpat@inmotionhosting.com>
 # v0.9 (Updated on 10/12/2022)
 
+# Check the Bash version. telcheck requires at least 4.2 to work.
+if [[ "${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}" -lt "42" ]]; then
+  echo "telcheck requires at least Bash 4.2 to work. Your version is ${BASH_VERSION}."
+  exit
+fi
+
 # Version number is latest change date
 VERSION="telcheck 0.9 (Updated on 10/12/2022)"
 
