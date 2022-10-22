@@ -1,6 +1,10 @@
 telcheck()
 {
-VERSION="telcheck 0.9 (Updated on 10/12/2022)"
+if [[ "${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}" -lt "42" ]]; then
+echo "telcheck requires at least Bash 4.2 to work. Your version is ${BASH_VERSION}."
+return
+fi
+VERSION="telcheck 0.9 (Updated on 10/21/2022)"
 TEXT_BOLD="\e[1m"
 TEXT_GREEN="\e[32m"
 TEXT_RED="\e[31m"
