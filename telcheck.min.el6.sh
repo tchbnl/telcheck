@@ -4,6 +4,10 @@ unset SOURCE_IP
 unset VERBOSE
 unset IS_BLOCKED
 unset CLOUDMARK
+if ! which telnet >/dev/null; then
+echo "Couldn't find telnet. Please install it and run telcheck again."
+return
+fi
 VERSION="telcheck 0.9 R2 (Updated on 10/22/2022)"
 TEXT_BOLD="\e[1m"
 TEXT_RESET="\e[0m"
