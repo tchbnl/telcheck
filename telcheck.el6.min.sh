@@ -1,14 +1,13 @@
 telcheck()
 {
+if ! command -v telnet >/dev/null; then
+echo "telcheck requires telnet to work. Hence the name 'tel(net)check'."
+return
+fi
 unset SOURCE_IP
 unset VERBOSE
 unset IS_BLOCKED
-unset CLOUDMARK
-if ! which telnet >/dev/null; then
-echo "Couldn't find telnet. Please install it and run telcheck again."
-return
-fi
-VERSION="telcheck 0.9 R2 (Updated on 10/22/2022)"
+VERSION="telcheck 0.9 R2 (Updated on 11/12/2022)"
 TEXT_BOLD="\e[1m"
 TEXT_RESET="\e[0m"
 HELP_MESSAGE="telcheck is a simple email block checker using telnet.
@@ -31,7 +30,7 @@ HOSTS=("Yahoo! (+ AOL and Verizon), mta5.am0.yahoodns.net"
 "Outlook (+ Hotmail), outlook-com.olc.protection.outlook.com")
 while [[ "${#}" -gt 0 ]]; do
 case "${1}" in
--b|--source)
+-b|--source|-s|--battle)
 if [[ -z "${2}" ]]; then
 echo "You must specify an IP address to check with. Use '-b IP'."
 return
@@ -40,7 +39,7 @@ SOURCE_IP="${2}"
 shift 2
 fi
 ;;
--h|--help|-s|--battle)
+-h|--help)
 echo "${HELP_MESSAGE}"
 return
 ;;
@@ -69,7 +68,7 @@ fi
 if [[ -x /usr/local/cpanel/bin/whmapi1 ]]; then
 if whmapi1 listips | sed '/'"$(hostname -i)"'/d' | grep -iq "public_ip:"; then
 echo -e "${TEXT_BOLD}Found one or more additional IP addresses:${TEXT_RESET}"
-whmapi1 listips | sed '/'"$(hostname -i)"'/d' | grep -iq "public_ip:" \
+whmapi1 listips | sed '/'"$(hostname -i)"'/d' | grep -i "public_ip:" \
 | awk -F ': ' '{print "* " $2}'
 echo -e "You can check a different IP address with '-b IP'.\n"
 fi
@@ -91,10 +90,7 @@ TRESULT="$(telcheck "$(echo "${HOST}" | awk -F ', ' '{print $2}')")"
 if echo "${TRESULT}" | grep -Eiq "${BAD_WORDS}"; then
 echo "Fail"
 IS_BLOCKED="Yes"
-if echo "${TRESULT}" | grep -Ei "${BAD_WORDS}" | grep -iq "cloudmark"; then
-CLOUDMARK="Yes"
-fi
-if [[ -n "${VERBOSE}" ]]; then
+if [[ -z "${VERBOSE}" ]]; then
 echo "${TRESULT}" | grep -Ei "${BAD_WORDS}"
 fi
 else
@@ -107,9 +103,6 @@ echo
 done
 if [[ -n "${IS_BLOCKED}" ]]; then
 echo "One or more blocks detected! Follow the instructions from the output above to delist."
-if [[ -n "${CLOUDMARK}" ]]; then
-echo -e "\nNote: Cloudmark requires a unique PTR record for the IP before it can be delisted."
-fi
 else
 echo "All clear! No blocks detected."
 fi

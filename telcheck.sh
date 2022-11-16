@@ -1,193 +1,169 @@
 #!/bin/bash
 # telcheck: Check for email blocks with telnet
-# Nathan Paton <nathanpat@inmotionhosting.com>
-# v0.9 (Updated on 10/21/2022)
+# Nathan Paton <code@tchbnl.net>
+# v0.9 R2 (Updated on 11/9/2022)
 
-# Check the Bash version. telcheck requires at least 4.2 to work.
+# Some of this stuff won't work on Bash versions before 4.2
 if [[ "${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}" -lt "42" ]]; then
   echo "telcheck requires at least Bash 4.2 to work. Your version is ${BASH_VERSION}."
   exit
 fi
 
-# Version number is latest change date
-VERSION="telcheck 0.9 (Updated on 10/21/2022)"
+# It's rare, but sometimes telnet isn't installed
+if ! command -v telnet >/dev/null; then
+  echo "telcheck requires telnet to work. Hence the name 'tel(net)check'."
+  exit
+fi
 
-# Text formatting options
+# In case of repeated telcheck.min runs, we unset some variables first
+unset SOURCE_IP
+unset VERBOSE
+unset IS_BLOCKED
+
+# Version and last update date
+VERSION="telcheck 0.9 R2 (Updated on 11/9/2022)"
+
+# Text formatting
 TEXT_BOLD="\e[1m"
-TEXT_GREEN="\e[32m"
-TEXT_RED="\e[31m"
 TEXT_RESET="\e[0m"
 
-# Help message when -h or an unknown option is passed
-MSG_HELP="telcheck is a simple email block checker using telnet.
+# Help message
+HELP_MESSAGE="telcheck is a simple email block checker using telnet.
 
-USAGE: telcheck [-b]
-    -b --source [IP]    Specify the IP to run the check against.
-    -h --help           Show this message and exit.
-    -s --battle         Experimental space battle simulator.
-    -v --version        Show version information and exit.
+USAGE: telcheck [-b IP]
+  -b --source [IP]        Run check against the given IP address.
+  -h --help               Show this message and exit.
+  -v --version            Show version information and exit.
+  -s --batle              Experimental space battle simulator.
+  -V --verbose            Show full host responses regardles of a block.
 
-Note: Do not abuse this script! Frequent checks can make things worse. Run
-once and collect the information. Get delisted. That's it."
+Note: Do not abuse this script! Frequent checks can make things worse. Run once
+and collect the information. Get delisted. That's it."
 
-# Email hosts
-HOSTS=("Aol.com, mx-aol.mail.gm0.yahoodns.net"
-       "Att.net, al-ip4-mx-vip1.prodigy.net"
-       "Comcast.net, mx1a1.comcast.net"
-       "Cox.net, cxr.mx.a.cloudfilter.net"
-       "Earthlink.net, mx01.oxsus-vadesecure.net"
-       "Fastmail.com, in1-smtp.messagingengine.com"
-       "Gmail.com, gmail-smtp-in.l.google.com"
-       "Hotmail.com, hotmail-com.olc.protection.outlook.com"
-       "Optonline.com, mx.mx-altice.prod.cloud.synchronoss.net"
-       "Outlook.com, outlook-com.olc.protection.outlook.com"
-       "Verizon.net, mx-aol.mail.gm0.yahoodns.net"
-       "Yahoo.com, mta5.am0.yahoodns.net")
+# Left is the host and display text for the check output. Right is the actual
+# MX record run through telnet.
+HOSTS=("Yahoo! (+ AOL and Verizon), mta5.am0.yahoodns.net"
+       "ATT, al-ip4-mx-vip1.prodigy.net"
+       "Comcast, mx1a1.comcast.net"
+       "Cox\U2122, cxr.mx.a.cloudfilter.net"
+       "EarthLink, mx01.oxsus-vadesecure.net"
+       "Gmail, gmail-smtp-in.l.google.com"
+       "Outlook (+ Hotmail), outlook-com.olc.protection.outlook.com")
 
-# Option options
-while [[ "$#" -gt 0 ]]; do
-  case "$1" in
-    -b|--source)
-      SOURCE_ADDR="$2"
-      shift
-      shift
-    ;;
+# Command options
+while [[ "${#}" -gt 0 ]]; do
+  case "${1}" in
+    -b|--source|-s|--battle)
+      # Make sure an IP is given, and if so, set our SOURCE_IP
+      # TODO: Add a check to make sure what looks like an IP is given
+      if [[ -z "${2}" ]]; then
+        echo "You must specify an IP address to check with. Use '-b IP'."
+        exit
+      else
+        SOURCE_IP="${2}"
+        shift 2
+      fi
+      ;;
+
     -h|--help)
-      echo "${MSG_HELP}"
+      echo "${HELP_MESSAGE}"
       exit
-    ;;
-    -s|--battle)
-      SOURCE_ADDR="$2"
-      shift
-      shift
-    ;;
+      ;;
+
     -v|--version)
       echo "${VERSION}"
       exit
-    ;;
-    *)
-      echo "Unknown option $1"
-      echo "${MSG_HELP}"
+      ;;
+
+    -V|--verbose)
+      VERBOSE="Yes"
+      shift 1
+      ;;
+
+    -*)
+      echo -e "Not sure what '${1}' is supposed to be.\n"
+      echo "${HELP_MESSAGE}"
       exit
-    ;;
+      ;;
   esac
 done
 
-# Test if SOURCE_ADDR is valid or not; this runs a local telnet session that
-# attempts to bind the IP. If it can't bind, there's no sense continuing.
-if [[ -v SOURCE_ADDR ]]; then
-  if { echo "quit"; sleep 1.5; } \
-      | telnet -b "${SOURCE_ADDR}" 127.0.0.1 25 2>&1 \
-      | grep -Eiq "couldn't bind to|cannot assign|couldn't get|could not resolve|invalid argument"; then
-
-    echo "Specified IP is invalid or not available. Aborting attempt.";
-    unset SOURCE_ADDR
-    exit
-  fi
+# Make sure the IP being used can be bound to and can talk to a local mail
+# server. If it can't, we bail here.
+if (sleep 1; echo "QUIT") | telnet ${SOURCE_IP:+-b ${SOURCE_IP} }127.0.0.1 25 2>&1 \
+  | grep -Eiq "unable to connect|can't assign|cannot assign|nodename nor servname provided|couldn't get address|could not get address|name or service not known"; then
+  echo -e "${TEXT_BOLD}Error:${TEXT_RESET} IP address is invalid or not" \
+  "available. telcheck requires a public IP address assigned to the server in order to work.\n"
+  echo "IP: ${SOURCE_IP:-"$(hostname -i)"}"
+  exit
 fi
 
-# Check for additional IPs; this uses the cPanel API to fetch all public IPs on
-# the server. An initial check makes sure the whmapi1 command is available in
-# case this script is run on a non-cPanel server.
+# This uses the cPanel API to fetch all usable IPs on the server. A check for
+# the 'whmapi1' command is done first to make sure this will work.
 if [[ -x /usr/local/cpanel/bin/whmapi1 ]]; then
-  if whmapi1 listips | sed "/$(hostname -i)/d" | grep -iq "public_ip:"; then
-    echo -e "${TEXT_BOLD}Found one or more dedicated IPs.${TEXT_RESET} Use '-b [IP]' to re-run against them:"
-
-    echo -e "$(whmapi1 listips | sed "/$(hostname -i)/d" | grep -i "public_ip:" \
-      | awk '{print "* "$2}')\n"
+  if whmapi1 listips | sed '/'"$(hostname -i)"'/d' | grep -iq "public_ip:"; then
+    echo -e "${TEXT_BOLD}Found one or more additional IP addresses:${TEXT_RESET}"
+    whmapi1 listips | sed '/'"$(hostname -i)"'/d' | grep -i "public_ip:" \
+    | awk -F ': ' '{print "* " $2}'
+    echo -e "You can check a different IP address with '-b IP'.\n"
   fi
 fi
 
-# Display the IP we're checking against
-if [[ -v SOURCE_ADDR ]]; then
-  echo -e "${TEXT_BOLD}Checking ${SOURCE_ADDR}...${TEXT_RESET}\n"; else
-  echo -e "${TEXT_BOLD}Checking $(hostname -i)...${TEXT_RESET}\n"
-fi
+# Literally a waste of SLOC
+# Random text shown when starting a check
+WAIT_TEXT=("Reticulating splines"
+           "Enumerating beagles"
+           "Rotating hedges"
+           "Formulating ruses")
 
-# Loop through the HOSTS list and run the telcheck
+# Show the IP we're checking against
+echo -e "${TEXT_BOLD}${SOURCE_IP:-"$(hostname -i)"}${TEXT_RESET}"
+echo -e "Please wait. ${WAIT_TEXT[$((RANDOM % ${#WAIT_TEXT[@]}))]}...\n"
+
+# List of terms to grep with further down
+BAD_WORDS="banned|blacklist|blacklisted|block|blocklisted|denied|dnsbl|dnsrbl|found on one or more|invaluement|ivmsip|is on a|not allowed|rbl|rejected|sorbs|spamcop|spamhaus"
+
+# Behold! The telcheck. We send a set of commands to telnet against each host
+# server. In most cases a host won't report a block until we at least set a
+# from address. We sleep between each command to give the host enough time to
+# respond. Setting this below 1.5 tends to break some host checks.
+telcheck() {
+  (sleep 1.5; echo "EHLO $(hostname)"; sleep 1.5; echo "MAIL FROM: <root@$(hostname)>"; sleep 1.5; echo "QUIT") \
+  | telnet ${SOURCE_IP:+-b ${SOURCE_IP} }"${*}" 25 2>&1
+}
+
+# Run the telcheck against each host
 for HOST in "${HOSTS[@]}"; do
-  # Hotmail and Outlook use the same infrastructure. To avoid a useless lookup
-  # we intercept and forward the results from Hotmail to the Outlook check. The
-  # actual check code is further down and explained there.
-  if [[ "${HOST}" == "Outlook"* ]]; then
-    if [[ -n "${HOTMAIL_RESPONSE}" ]]; then
-      IS_BLOCKED="true"
-      RESULT="${TEXT_RED}FAIL${TEXT_RESET}"; else
-      RESULT="${TEXT_GREEN}OK${TEXT_RESET}"
+  echo -e "${TEXT_BOLD}$(echo "${HOST}" | awk -F ',' '{print $1}')${TEXT_RESET}"
+
+  # We variablize the telcheck for further grepping below
+  # The weird variable name is to make this text line up with the stuff above
+  TRESULT="$(telcheck "$(echo "${HOST}" | awk -F ', ' '{print $2}')")"
+
+  # And here are the results of that greppage
+  if echo "${TRESULT}" | grep -Eiq "${BAD_WORDS}"; then
+    echo -e "\U26D4 Fail"
+    # We set IS_BLOCKED for the result summary at the end of thsi script
+    IS_BLOCKED="Yes"
+
+    # Show the result message if VERBOSE isn't set
+    if [[ ! -v VERBOSE ]]; then
+      echo "${TRESULT}" | grep -Ei "${BAD_WORDS}"
     fi
-
-    echo -e "${TEXT_BOLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BOLD}]${TEXT_RESET}"
-
-    if [[ -n "${HOTMAIL_RESPONSE}" ]]; then
-      echo "🚫 ${HOTMAIL_RESPONSE}"
-    fi
-
-    continue
+  else
+    echo -e "\U1F44D Pass"
   fi
 
-  # Same for AOL/Verizon/Yahoo
-  if [[ "${HOST}" == "Verizon"* || "${HOST}" == "Yahoo"* ]]; then
-    if [[ -n "${AOL_RESPONSE}" ]]; then
-      IS_BLOCKED="true"
-      RESULT="${TEXT_RED}FAIL${TEXT_RESET}"; else
-      RESULT="${TEXT_GREEN}OK${TEXT_RESET}"
-    fi
-
-    echo -e "${TEXT_BOLD}* $(echo "$HOST" | awk -F "," '{print $1}') [$RESULT${TEXT_BOLD}]${TEXT_RESET}"
-
-    if [[ -n "${AOL_RESPONSE}" ]]; then
-      echo "🚫 ${AOL_RESPONSE}"
-    fi
-
-    continue
+  # Because if VERBOSE is set, we show the entire telnet output instead
+  if [[ -v VERBOSE ]]; then
+    echo "${TRESULT}"
   fi
-
-  # Runs telnet with our commands, SOURCE_ADDR (if set), and HOST. Most mail
-  # hosts won't tell us we're blocked until we at least attempt to send a
-  # message (mail from:).
-  check_host() {
-    { sleep 1.5; echo "ehlo $(hostname)"; sleep 1.5; echo "mail from: <root@$(hostname)>"; sleep 1.5; echo "quit"; sleep 1.5; } \
-      | telnet ${SOURCE_ADDR:+"-b" "${SOURCE_ADDR}"} "$(echo "${HOST}" | awk '{print $2}')" 25 2>&1
-  }
-
-  # Run check_host() and grep its output into a variable for further use
-  RESPONSE="$(check_host \
-    | grep -Ei "block|blacklist|not allowed|banned|denied|rejected|ivmsip|invaluement|sorbs|spamcop|spamhaus|dnsbl|dnsrbl|rbl|found on one or more")"
-
-  # If RESPONSE had a match, we're blocked
-  if [[ -n "${RESPONSE}" ]]; then
-    IS_BLOCKED='true'
-    RESULT="${TEXT_RED}FAIL${TEXT_RESET}"; else
-    RESULT="${TEXT_GREEN}OK${TEXT_RESET}"
-  fi
-
-  # Display the host and its result (OK or FAIL)
-  echo -e "${TEXT_BOLD}* $(echo "${HOST}" | awk -F "," '{print $1}') [${RESULT}${TEXT_BOLD}]${TEXT_RESET}"
-
-  # For blocked results, we need to also show the error message
-  if [[ -n "${RESPONSE}" ]]; then
-    echo "🚫 ${RESPONSE})"
-  fi
-
-  # Setup for the Verizon/Yahoo check further up
-  if [[ "${HOST}" == "Aol"* ]]; then
-    AOL_RESPONSE="${RESPONSE}"
-  fi
-
-  # Same for the Outlook check
-  if [[ "${HOST}" == "Hotmail"* ]]; then
-    HOTMAIL_RESPONSE="${RESPONSE}"
-  fi
+  echo
 done
 
-# Final summary message and cleanup for telcheck.min
+# Final results summary
 if [[ -v IS_BLOCKED ]]; then
-  echo -e "\nBlock(s) detected. Follow the steps in the above output(s) to delist."
-  unset IS_BLOCKED; else
-  echo -e "\nAll clear! No blocks detected."
-fi
-
-# Unset SOURCE_ADDR for telcheck.min
-if [[ -v SOURCE_ADDR ]]; then
-  unset SOURCE_ADDR
+  echo "One or more blocks detected! Follow the instructions from the output above to delist."
+else
+  echo "All clear! No blocks detected."
 fi
