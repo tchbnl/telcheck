@@ -10,7 +10,7 @@ fi
 unset SOURCE_IP
 unset VERBOSE
 unset IS_BLOCKED
-VERSION="telcheck 0.9 R2 (Updated on 11/12/2022)"
+VERSION="telcheck 0.9 R2 (Updated on 12/14/2022)"
 TEXT_BOLD="\e[1m"
 TEXT_RESET="\e[0m"
 HELP_MESSAGE="telcheck is a simple email block checker using telnet.
@@ -83,13 +83,13 @@ WAIT_TEXT=("Reticulating splines"
 echo -e "${TEXT_BOLD}${SOURCE_IP:-"$(hostname -i)"}${TEXT_RESET}"
 echo -e "Please wait. ${WAIT_TEXT[$((RANDOM % ${#WAIT_TEXT[@]}))]}...\n"
 BAD_WORDS="banned|blacklist|blacklisted|block|blocklisted|denied|dnsbl|dnsrbl|found on one or more|invaluement|ivmsip|is on a|not allowed|rbl|rejected|sorbs|spamcop|spamhaus"
-telcheck() {
+telcheck_cmd() {
 (sleep 1.5; echo "EHLO $(hostname)"; sleep 1.5; echo "MAIL FROM: <root@$(hostname)>"; sleep 1.5; echo "QUIT") \
 | telnet ${SOURCE_IP:+-b ${SOURCE_IP} }"${*}" 25 2>&1
 }
 for HOST in "${HOSTS[@]}"; do
 echo -e "${TEXT_BOLD}$(echo "${HOST}" | awk -F ',' '{print $1}')${TEXT_RESET}"
-TRESULT="$(telcheck "$(echo "${HOST}" | awk -F ', ' '{print $2}')")"
+TRESULT="$(telcheck_cmd "$(echo "${HOST}" | awk -F ', ' '{print $2}')")"
 if echo "${TRESULT}" | grep -Eiq "${BAD_WORDS}"; then
 echo -e "\U26D4 Fail"
 IS_BLOCKED="Yes"

@@ -25,7 +25,7 @@ Gmail _should_ work, but I haven't been able to check it against a blocked IP. I
 
 Support is available to check different IP addresses, as well as a verbose mode to view the entire telnet output for troubleshooting or extra information.
 
-The current version is **v0.9 R2 (Updated on 11/9/2022)**. You can check the downloaded version with `-v` or `--version`. R2 is a rewrite of the original telcheck code and includes overall "better" code quality, a redesigned output, and a verbose mode. R1 is still available and includes additional checks for Fastmail and Optimum. You can find it in the 'classic' branch. A minified version that can work on CentOS 6 is also available, albeit without support (I needed it one time).
+The current version is **v0.9 R2 (Updated on 12/14/2022)**. You can check the downloaded version with `-v` or `--version`. R2 is a rewrite of the original telcheck code and includes overall "better" code quality, a redesigned output, and a verbose mode. R1 is still available and includes additional checks for Fastmail and Optimum. You can find it in the 'classic' branch. A minified version that can work on CentOS 6 is also available, albeit without support (I needed it one time).
 
 A minified version without comments and extra spaces is available as telcheck.min.sh. This version is designed to be pasted directly into an open Bash shell and run like normal.
 

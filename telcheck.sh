@@ -1,7 +1,7 @@
 #!/bin/bash
 # telcheck: Check for email blocks with telnet
 # Nathan Paton <code@tchbnl.net>
-# v0.9 R2 (Updated on 11/9/2022)
+# v0.9 R2 (Updated on 12/14/2022)
 
 # Some of this stuff won't work on Bash versions before 4.2
 if [[ "${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}" -lt "42" ]]; then
@@ -21,7 +21,7 @@ unset VERBOSE
 unset IS_BLOCKED
 
 # Version and last update date
-VERSION="telcheck 0.9 R2 (Updated on 11/9/2022)"
+VERSION="telcheck 0.9 R2 (Updated on 12/14/2022)"
 
 # Text formatting
 TEXT_BOLD="\e[1m"
@@ -127,7 +127,7 @@ BAD_WORDS="banned|blacklist|blacklisted|block|blocklisted|denied|dnsbl|dnsrbl|fo
 # server. In most cases a host won't report a block until we at least set a
 # from address. We sleep between each command to give the host enough time to
 # respond. Setting this below 1.5 tends to break some host checks.
-telcheck() {
+telcheck_cmd() {
   (sleep 1.5; echo "EHLO $(hostname)"; sleep 1.5; echo "MAIL FROM: <root@$(hostname)>"; sleep 1.5; echo "QUIT") \
   | telnet ${SOURCE_IP:+-b ${SOURCE_IP} }"${*}" 25 2>&1
 }
@@ -138,7 +138,7 @@ for HOST in "${HOSTS[@]}"; do
 
   # We variablize the telcheck for further grepping below
   # The weird variable name is to make this text line up with the stuff above
-  TRESULT="$(telcheck "$(echo "${HOST}" | awk -F ', ' '{print $2}')")"
+  TRESULT="$(telcheck_cmd "$(echo "${HOST}" | awk -F ', ' '{print $2}')")"
 
   # And here are the results of that greppage
   if echo "${TRESULT}" | grep -Eiq "${BAD_WORDS}"; then
