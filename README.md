@@ -1,3 +1,5 @@
+## This is a copy of https://github.com/tchbnl/telcheck. Check the GitHub for latest changes.
+
 ```
 # telcheck -h
 telcheck is a simple email block checker using telnet.
