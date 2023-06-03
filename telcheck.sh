@@ -1,7 +1,7 @@
 #!/bin/bash
 # telcheck: Check for email blocks with telnet
 # Nathan Paton <me@tchbnl.net>
-# v0.9 R2 (Updated on 5/26/2023)
+# v0.9 R2 (Updated on 6/3/2023)
 
 # Some of this stuff won't work on Bash versions before 4.2
 # Use telnet.el6.min.sh for old servers
@@ -22,7 +22,7 @@ unset VERBOSE
 unset IS_BLOCKED
 
 # Version information
-VERSION="telcheck 0.9 R2 (Updated on 5/26/2023)"
+VERSION="telcheck 0.9 R2 (Updated on 6/3/2023)"
 
 # Nice text formatting
 TEXT_BOLD="\e[1m"
@@ -35,7 +35,7 @@ USAGE: telcheck [-b IP]
   -b --source [IP]        Run check against the given IP address.
   -h --help               Show this message and exit.
   -v --version            Show version information and exit.
-  -s --batle              Experimental space battle simulator.
+  -s --battle             Experimental space battle simulator.
   -V --verbose            Show full host responses regardles of a block.
 
 Note: Do not abuse this script! Frequent checks can make things worse. Run once
