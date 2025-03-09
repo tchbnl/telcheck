@@ -1,6 +1,18 @@
 A simple script to check for email blocks with telnet. That's it.
 
 ```
+Check for mail server blocks with telnet
+
+Usage: telcheck [OPTIONS] [ARGS]
+
+Options:
+    -b, --source [IP]   Specify the source IP to check against
+    -h, --help          Show this message
+    -v, --version       Show version and release
+    -B, --battle        Experimental space battle simulator
+```
+
+```
 [root@cwp ~]# telcheck
 Checking 5.161.254.101...
 
