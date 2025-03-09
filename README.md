@@ -91,6 +91,10 @@ Connection closed by foreign host.
 
 A future release will hide the output (unless --verbose is used) and show a simple PASS/FAIL (with message).
 
+**Why is Gmail marked as unreliable?**
+
+Gmail doesn't (AFAICT) do traditional blocks where it simply kills the connection. It'll flag a message in transit instead. I throw it in here because I guess I should, but don't rely on this tool for Gmail blocks. You'll want to send an actual message and check the logs.
+
 **Wasn't there another telcheck?**
 
 No. It never existed. You're mistaken. Seek help.
