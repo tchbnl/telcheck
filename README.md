@@ -92,4 +92,5 @@ Connection closed by foreign host.
 A future release will hide the output (unless --verbose is used) and show simple a PASS/FAIL (with message).
 
 **Wasn't there another telcheck?**
+
 No. It never existed. You're mistaken. Seek help.
