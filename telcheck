@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# telcheck: Check for mail blocks with telnet
+# Nathan P. <code@tchbnl.net>
+# 0.1a
+set -euo pipefail
+
+TEXT_BOLD="$(tput bold)"
+TEXT_UNSET="$(tput sgr0)"
+
+VERSION='0.1a'
+RELEASE='Toffee'
+
+MAIL_HOSTS=("mx-aol.mail.gm0.yahoodns.net:AOL & Yahoo!"
+            "al-ip4-mx-vip1.prodigy.net:AT&T"
+            "mx1.mxge.comcast.net:Comcast"
+            "gmail-smtp-in.l.google.com:Gmail (Unreliable)"
+            "outlook-com.olc.protection.outlook.com:Outlook & Hotmail")
+
+show_help() {
+    cat<<EOF
+Check for mail server blocks with telnet
+
+Usage: $(basename "${0}") [OPTIONS] [ARGS]
+
+Options:
+    -b, --source [IP]   Specify the source IP to check against
+    -h, --help          Show this message
+    -v, --version       Show version and release
+    -B, --battle        Experimental space battle simulator
+EOF
+}
+
+main() {
+    if [[ -v SOURCE_IP ]]; then
+        ips="$(ip addr | grep inet | awk '{print $2}' | \
+            awk -F '/' '{print $1}' | grep -Ev '127.0.0.1|::1')"
+
+        if ! echo "${ips}" | grep -wq "${SOURCE_IP}"; then
+            echo "${SOURCE_IP} wasn't found on this server."
+            exit
+        fi
+    else
+        SOURCE_IP="$(ip route get 1.1.1.1 | head -n 1 | awk '{print $7}')"
+    fi
+
+    echo "Checking ${SOURCE_IP}..."
+
+    for host in "${MAIL_HOSTS[@]}"; do
+        host_name="$(echo "${host}" | awk -F ':' '{print $2}')"
+        host_record="$(echo "${host}" | awk -F ':' '{print $1}')"
+
+        echo
+        echo "${TEXT_BOLD}${host_name}${TEXT_UNSET}"
+
+        run_check "${host_record}"
+    done
+}
+
+run_check() {
+    hostname="$(hostname)"
+
+    {
+        sleep 3s;
+        echo -e "EHLO ${hostname}";
+        sleep 3s;
+        echo -e "MAIL FROM:<root@${hostname}>";
+        sleep 3s;
+        echo -e "QUIT";
+    } | timeout 30s telnet -b "${SOURCE_IP}" "${@}" 25 || true
+}
+
+while [[ "${#}" -gt 0 ]]; do
+    case "${1}" in
+        -b|--source)
+            SOURCE_IP="${2}"
+            break
+            ;;
+
+        -v|--version)
+            echo "${VERSION} \"${RELEASE}\""
+            exit 0
+            ;;
+
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+
+        -B|--battle)
+            exit 0
+            ;;
+
+        -*)
+            echo -e "Not sure what ${1} is supposed to mean" >&2
+            echo
+            show_help
+            exit 1
+            ;;
+
+        *)
+            break
+            ;;
+    esac
+done
+
+main
